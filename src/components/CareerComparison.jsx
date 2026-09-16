@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { C, disp, body, SectionLabel, ProgressBar } from "./UI";
+import { useState } from "react";
+import { C, disp, body, ProgressBar } from "./UI";
 
 export default function CareerComparison({ allResults, onBack }) {
   const [selected, setSelected] = useState([]);

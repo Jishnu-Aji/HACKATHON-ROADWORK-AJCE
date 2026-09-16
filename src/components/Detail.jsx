@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { C, disp, body, StatRow, DemoTag, SectionLabel } from "./UI";
+import { useState, useRef, useEffect } from "react";
+import { C, disp, body, StatRow, SectionLabel } from "./UI";
 
 const DETAIL_TABS = [
   "Why This Career",
@@ -181,7 +181,7 @@ function RoadmapView({ career }) {
   );
 }
 
-function AiAssistant({ career, profile, answers }) {
+export function AiAssistant({ career, profile, answers, college, contextType = "career" }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -191,10 +191,14 @@ function AiAssistant({ career, profile, answers }) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const suggested = [
+  const suggested = contextType === "career" ? [
     "Why did you recommend this career?",
     "Can I do this without a degree?",
     "What should I learn first?",
+  ] : [
+    "Which courses are best here?",
+    "What is the admission process?",
+    "Are there good facilities?",
   ];
 
   async function send(text) {
@@ -205,7 +209,20 @@ function AiAssistant({ career, profile, answers }) {
     setInput("");
     setLoading(true);
 
-    const systemPrompt = `You are the Roadwork career assistant. Answer ONLY using the career data and student profile JSON provided. Keep answers short (3-5 sentences), encouraging, and specific to this student and this career. Do not invent statistics. \nCAREER DATA:\n${JSON.stringify(career)}\n\nSTUDENT PROFILE:\n${JSON.stringify(profile)}`;
+    const locParts = [];
+    if (answers?.cityObj) locParts.push(answers.cityObj.name);
+    if (answers?.stateObj) locParts.push(answers.stateObj.name);
+    if (answers?.countryObj) locParts.push(answers.countryObj.name);
+    const locationString = locParts.length > 0 ? locParts.join(", ") : "Unknown Location";
+
+    let systemPrompt = `You are the Roadwork career assistant. Answer ONLY using the provided data. Keep answers short (3-5 sentences), encouraging, and specific. Do not invent statistics or fake information. If you don't know, say so.`;
+    
+    if (contextType === "career") {
+      systemPrompt += `\n\nCAREER DATA:\n${JSON.stringify(career)}\n\nSTUDENT PROFILE:\n${JSON.stringify(profile)}`;
+      systemPrompt += `\n\nThe student is located in: ${locationString}\nThey are open to relocating: ${answers?.relocation || "Not specified"}`;
+    } else if (contextType === "college") {
+      systemPrompt += `\n\nCOLLEGE DATA:\n${JSON.stringify(college)}`;
+    }
 
     try {
       const apiKey = (typeof import.meta !== "undefined" && import.meta.env)
@@ -244,7 +261,7 @@ function AiAssistant({ career, profile, answers }) {
       <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 18, minHeight: 200, maxHeight: 360, overflowY: "auto", marginBottom: 14 }}>
         {messages.length === 0 && (
           <div style={{ ...body, fontSize: 14, color: C.sub, marginBottom: 14 }}>
-            Ask about {career.name} — answers are grounded in this career&apos;s data.
+            Ask about {contextType === "career" ? career?.name : college?.name} — answers are grounded in verified data.
           </div>
         )}
         {messages.map((m, i) => (
@@ -263,14 +280,14 @@ function AiAssistant({ career, profile, answers }) {
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send(input)} placeholder="Ask something about this career…" style={{ ...body, flex: 1, padding: "12px 14px", borderRadius: 8, border: `2px solid ${C.line}`, fontSize: 14, color: C.ink, background: "#fff", outline: "none" }} />
+        <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send(input)} placeholder={`Ask something about this ${contextType === "career" ? "career" : "institution"}…`} style={{ ...body, flex: 1, padding: "12px 14px", borderRadius: 8, border: `2px solid ${C.line}`, fontSize: 14, color: C.ink, background: "#fff", outline: "none" }} />
         <button onClick={() => send(input)} disabled={loading} style={{ ...disp, fontWeight: 700, fontSize: 15, background: C.asphalt, color: C.amber, border: "none", padding: "0 22px", borderRadius: 8, cursor: loading ? "default" : "pointer" }}>Send</button>
       </div>
     </div>
   );
 }
 
-export default function CareerDetail({ result, profile, answers, onBack }) {
+export default function CareerDetail({ result, profile, answers, onBack, onFindCourses }) {
   const [tab, setTab] = useState("Why This Career");
   const { career, breakdown } = result;
 
@@ -296,8 +313,16 @@ export default function CareerDetail({ result, profile, answers, onBack }) {
         <h1 style={{ ...disp, fontSize: "clamp(28px,5vw,40px)", fontWeight: 800, margin: "0 0 6px", color: C.ink }}>
           {career.name}
         </h1>
-        <div style={{ ...disp, fontSize: 18, fontWeight: 700, color: C.route, marginBottom: 16 }}>
-          {result.final}% match
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ ...disp, fontSize: 18, fontWeight: 700, color: C.route }}>
+            {result.final}% match
+          </div>
+          <button 
+            onClick={() => onFindCourses(career)}
+            style={{ ...disp, fontSize: 14, fontWeight: 700, background: C.asphalt, color: C.paper, border: "none", padding: "8px 16px", borderRadius: 6, cursor: "pointer" }}
+          >
+            Find Where To Study
+          </button>
         </div>
         <p style={{ ...body, fontSize: 15.5, color: "#3E3D38", lineHeight: 1.55, marginBottom: 28 }}>
           {career.description}

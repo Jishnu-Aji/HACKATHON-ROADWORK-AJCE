@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useFonts, C, disp, body } from "./components/UI";
 import { CAREERS } from "./data/careers";
 import { buildProfile, scoreCareer } from "./utils/matching";
@@ -8,6 +8,10 @@ import Profile from "./components/Profile";
 import Results from "./components/Results";
 import CareerDetail from "./components/Detail";
 import CareerComparison from "./components/CareerComparison";
+import CourseExplorer from "./components/CourseExplorer";
+import CollegeFinder from "./components/CollegeFinder";
+import CollegeDetail from "./components/CollegeDetail";
+import AdmissionRoadmap from "./components/AdmissionRoadmap";
 
 function Landing({ onStart, onDemo }) {
   return (
@@ -52,16 +56,22 @@ export default function App() {
   const [selected, setSelected] = useState(null);
 
   const handleDemo = () => {
-    // Fictional student profile focusing on tech and problem solving
+    // Fictional student profile exactly as requested
     setAnswers({
-      education: "Class 11–12",
-      region: "Demo Region",
-      interests: ["Technology", "Problem Solving", "Creativity"],
-      subjects: ["Computer Science", "Math", "Physics"],
-      skills: ["Computer Basics", "Problem Solving"],
-      workStyle: "Solving difficult problems",
+      education: "Class 12",
+      countryObj: { name: "India", isoCode: "IN" },
+      stateObj: { name: "Kerala", isoCode: "KL" },
+      cityObj: { name: "Pathanapuram", isManual: true },
+      relocation: "Anywhere in my state",
+      topInterests: ["Technology", "Problem Solving", "Creativity"],
+      interests: ["Technology", "Problem Solving", "Creativity", "Mathematics", "Science"],
+      subjects: ["Computer Science", "Mathematics", "Physics"],
+      subjectConfidence: "Confident",
+      strengths: ["Programming", "Analysis", "Communication", "Problem Solving"],
+      strengthEvidence: "Personal projects",
+      workStyleScenario: "A: A computer cannot connect to the internet. Find out what's wrong.",
       budget: "Good income",
-      pathwayPref: "I want to compare all routes",
+      pathwayPref: "Compare all routes",
     });
     setView("profile");
   };
@@ -131,6 +141,47 @@ export default function App() {
           profile={profile}
           answers={answers}
           onBack={() => setView("results")}
+          onFindCourses={() => setView("courseExplorer")}
+        />
+      )}
+
+      {view === "courseExplorer" && selected && (
+        <CourseExplorer
+          career={selected.career}
+          onBack={() => setView("detail")}
+          onCourseSelect={(course) => {
+            // Passing course into collegeFinder state
+            setSelected({ ...selected, course });
+            setView("collegeFinder");
+          }}
+        />
+      )}
+
+      {view === "collegeFinder" && (
+        <CollegeFinder
+          course={selected?.course}
+          answers={answers}
+          onBack={() => setView("courseExplorer")}
+          onCollegeSelect={(college) => {
+            console.log("Selected college:", college);
+            setSelected({ ...selected, college });
+            setView("collegeDetail");
+          }}
+        />
+      )}
+
+      {view === "collegeDetail" && selected?.college && (
+        <CollegeDetail
+          college={selected.college}
+          onBack={() => setView("collegeFinder")}
+          onExams={() => setView("admissionRoadmap")}
+        />
+      )}
+
+      {view === "admissionRoadmap" && selected?.college && (
+        <AdmissionRoadmap
+          college={selected.college}
+          onBack={() => setView("collegeDetail")}
         />
       )}
     </div>

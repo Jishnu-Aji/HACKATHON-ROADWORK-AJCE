@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { useEffect } from "react";
 
 export function useFonts() {
   useEffect(() => {
@@ -134,6 +135,15 @@ export function SectionLabel({ children }) {
       }}
     >
       {children}
+    </div>
+  );
+}
+
+export function InfoRow({ label, value }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12, gap: 16 }}>
+      <span style={{ ...disp, fontSize: 14, color: C.sub, fontWeight: 600, flexShrink: 0, textTransform: "uppercase", letterSpacing: 1 }}>{label}</span>
+      <span style={{ ...body, fontSize: 15, color: C.ink, textAlign: "right", fontWeight: 500 }}>{value}</span>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { C, disp, body, DemoTag, SectionLabel } from "./UI";
 
 function whyFoundThis(answers, career) {

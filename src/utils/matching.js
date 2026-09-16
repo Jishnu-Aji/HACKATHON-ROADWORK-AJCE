@@ -13,7 +13,7 @@ export function jaccardPct(selected, target) {
 export function buildProfile(answers) {
   const interests = answers.interests || [];
   const subjects = answers.subjects || [];
-  const skills = answers.skills || [];
+  const skills = answers.strengths || answers.skills || [];
 
   const subjectTraitMap = {
     "Computer Science": { Technology: 2, "Problem Solving": 1 },
@@ -84,7 +84,7 @@ export function buildProfile(answers) {
 
 export function scoreCareer(career, answers, allCareers) {
   const interests = answers.interests || [];
-  const skills = answers.skills || [];
+  const skills = answers.strengths || answers.skills || [];
 
   const interestMatch = clamp(jaccardPct(interests, career.interestCategories));
   const skillMatch = clamp(jaccardPct(skills, career.requiredSkills));
